@@ -43,6 +43,13 @@
             animation: moveCactus 2s linear infinite;
         }
 
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+        }
+
         @keyframes moveCactus {
             0% { right: 0; }
             100% { right: 100%; }
@@ -51,6 +58,7 @@
 </head>
 <body>
     <div class="game-container">
+        <div id="score">Score: 0</div>
         <div id="dino"></div>
         <div id="cactus"></div>
     </div>
@@ -58,9 +66,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             const dino = document.getElementById('dino');
             const cactus = document.getElementById('cactus');
+            const scoreDisplay = document.getElementById('score');
             let isJumping = false;
             let gravity = 0.9;
             let position = 0;
+            let score = 0;
 
             document.addEventListener('keydown', function(event) {
                 if (event.key === ' ' || event.key === 'ArrowUp') {
@@ -107,12 +117,18 @@
                     dinoRect.y < cactusRect.y + cactusRect.height &&
                     dinoRect.y + dinoRect.height > cactusRect.y
                 ) {
-                    alert('Game Over');
+                    alert('Game Over! Your score: ' + score);
                     window.location.reload();
                 }
             }
 
+            function updateScore() {
+                score++;
+                scoreDisplay.textContent = 'Score: ' + score;
+            }
+
             setInterval(checkCollision, 10);
+            setInterval(updateScore, 100);
         });
     </script>
 </body>
