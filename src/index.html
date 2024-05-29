@@ -3,92 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Random Memes</title>
+    <title>Dino Game</title>
     <style>
         body {
             margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #d9a4eb; /* Similar to the purple background */
-            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            font-family: 'Arial', sans-serif;
         }
 
-        .container {
-            text-align: center;
+        .game-container {
+            position: relative;
+            width: 800px;
+            height: 200px;
+            border: 1px solid #ccc;
+            overflow: hidden;
+            background-color: white;
         }
 
-        h1 {
-            color: white;
-            font-size: 2em;
+        #dino {
+            position: absolute;
+            bottom: 0;
+            left: 50px;
+            width: 50px;
+            height: 50px;
+            background-color: #000;
         }
 
-        .random-meme-button {
-            background: linear-gradient(to right, #66ffe3, #3a6a6e); /* Gradient background */
-            border: none;
-            border-radius: 8px;
-            color: black;
-            padding: 15px 30px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background 0.3s, color 0.3s;
+        #cactus {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 20px;
+            height: 50px;
+            background-color: #000;
+            animation: moveCactus 2s linear infinite;
         }
 
-        /* Hover state */
-        .random-meme-button:hover {
-            background: linear-gradient(to right, #ffffff, #d1d1d1); /* Gradient background on hover */
-            color: black;
-            border: 2px solid #66ffe3;
-        }
-
-        /* Active state */
-        .random-meme-button:active {
-            background: linear-gradient(to right, #b3f7ee, #8ba2a3); /* Gradient background on click */
-            color: #9ebebb;
-            border: 2px solid #ffffff;
-        }
-
-        #meme-container {
-            margin-top: 20px;
-        }
-
-        #meme-container img {
-            max-width: 100%;
-            height: auto;
-            border-radius: 8px;
+        @keyframes moveCactus {
+            0% { right: 0; }
+            100% { right: 100%; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Random Memes</h1>
-        <button class="random-meme-button" onclick="showRandomMeme()">Get a Random Meme</button>
-        <div id="meme-container"></div>
+    <div class="game-container">
+        <div id="dino"></div>
+        <div id="cactus"></div>
     </div>
     <script>
-        const memes = [
-            'https://img.wattpad.com/b607aebf8b1b7dc1a779aad54b7b403460026790/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f776174747061642d6d656469612d736572766963652f53746f7279496d6167652f3349414d564b64576d6b764a4c773d3d2d3835373832383438302e313630313433616132343330623864633237333835373634313538372e706e67?s=fit&w=720&h=720',
-            'https://i.pinimg.com/236x/74/f9/b0/74f9b048895dc0ebae6e95f8403b0080.jpg',
-            'https://i.kym-cdn.com/entries/icons/facebook/000/031/673/hank_died_walt_cries_(breaking_bad_spoilers)_1-35_screenshot.jpg',
-            'https://i.ytimg.com/vi/6l2nJD5T0JY/hqdefault.jpg',
-            'https://i.imgflip.com/7b4935.jpg',
-            'https://i.pinimg.com/736x/c7/d4/5e/c7d45efaab030d1c6ba87c4255d7aec5.jpg',
-            'https://i.pinimg.com/736x/61/e2/13/61e21347393910810dee0809dee6ed66.jpg',
-            'https://images7.memedroid.com/images/UPLOADED602/5e55373beec05.jpeg',
-            'https://i.chzbgr.com/thumb800/24720133/h34A44D77/twitter-memes-random-random-tweets-funny-random-memes-silly-silly-memes-cartoon-memes-cartoons',
-            'https://i.redd.it/pgu1ea7h0nh91.jpg'
+        document.addEventListener('DOMContentLoaded', () => {
+            const dino = document.getElementById('dino');
+            const cactus = document.getElementById('cactus');
+            let isJumping = false;
+            let gravity = 0.9;
+            let position = 0;
 
-        ];
+            document.addEventListener('keydown', function(event) {
+                if (event.key === ' ' || event.key === 'ArrowUp') {
+                    jump();
+                }
+            });
 
-        function showRandomMeme() {
-            const randomIndex = Math.floor(Math.random() * memes.length);
-            const selectedMeme = memes[randomIndex];
+            function jump() {
+                if (isJumping) return;
+                let count = 0;
+                isJumping = true;
 
-            const memeContainer = document.getElementById('meme-container');
-            memeContainer.innerHTML = `<img src="${selectedMeme}" alt="Random Meme">`;
-        }
+                let upTimerId = setInterval(() => {
+                    // move up
+                    if (count === 15) {
+                        clearInterval(upTimerId);
+                        // fall down
+                        let downTimerId = setInterval(() => {
+                            if (count === 0) {
+                                clearInterval(downTimerId);
+                                isJumping = false;
+                            }
+                            position -= 5;
+                            count--;
+                            position = position * gravity;
+                            dino.style.bottom = position + 'px';
+                        }, 20);
+                    }
+
+                    position += 30;
+                    count++;
+                    position = position * gravity;
+                    dino.style.bottom = position + 'px';
+                }, 20);
+            }
+
+            function checkCollision() {
+                const dinoRect = dino.getBoundingClientRect();
+                const cactusRect = cactus.getBoundingClientRect();
+
+                if (
+                    dinoRect.x < cactusRect.x + cactusRect.width &&
+                    dinoRect.x + dinoRect.width > cactusRect.x &&
+                    dinoRect.y < cactusRect.y + cactusRect.height &&
+                    dinoRect.y + dinoRect.height > cactusRect.y
+                ) {
+                    alert('Game Over');
+                    window.location.reload();
+                }
+            }
+
+            setInterval(checkCollision, 10);
+        });
     </script>
 </body>
 </html>
