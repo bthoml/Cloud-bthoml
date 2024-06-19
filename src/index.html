@@ -1,134 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dino Game</title>
+    <title>Text Humanisieren</title>
     <style>
         body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
             margin: 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f7f7f7;
-            font-family: 'Arial', sans-serif;
         }
-
-        .game-container {
-            position: relative;
-            width: 800px;
-            height: 200px;
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 600px;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
             border: 1px solid #ccc;
-            overflow: hidden;
-            background-color: white;
+            font-size: 16px;
         }
-
-        #dino {
-            position: absolute;
-            bottom: 0;
-            left: 50px;
-            width: 50px;
-            height: 50px;
-            background-color: black;
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
         }
-
-        #cactus {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            width: 20px;
-            height: 50px;
-            background-color: black;
-            animation: moveCactus 2s linear infinite;
+        button:hover {
+            background-color: #0056b3;
         }
-
-        #score {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 24px;
-        }
-
-        @keyframes moveCactus {
-            0% { right: 0; }
-            100% { right: 100%; }
+        #outputText {
+            margin-top: 20px;
+            white-space: pre-wrap;
         }
     </style>
 </head>
 <body>
-    <div class="game-container">
-        <div id="score">Score: 0</div>
-        <div id="dino"></div>
-        <div id="cactus"></div>
+    <div class="container">
+        <h1>Text Humanisieren mit OpenAI</h1>
+        <textarea id="inputText" placeholder="Fügen Sie hier Ihren Text ein..."></textarea>
+        <button id="humanizeButton">Humanisieren</button>
+        <h2>Humanisierter Text</h2>
+        <div id="outputText"></div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dino = document.getElementById('dino');
-            const cactus = document.getElementById('cactus');
-            const scoreDisplay = document.getElementById('score');
-            let isJumping = false;
-            let gravity = 0.9;
-            let position = 0;
-            let score = 0;
+        document.getElementById('humanizeButton').addEventListener('click', async () => {
+            const inputText = document.getElementById('inputText').value;
+            const outputTextElement = document.getElementById('outputText');
 
-            document.addEventListener('keydown', function(event) {
-                if (event.key === ' ' || event.key === 'ArrowUp') {
-                    jump();
+            // Ersetzen Sie 'YOUR_API_KEY' durch Ihren tatsächlichen OpenAI API-Schlüssel
+            const apiKey = 'sk-proj-oU6f75r4SdU46y4eVSMOT3BlbkFJHRcVSTaEONjFhe1rTT2g';
+
+            const data = {
+                prompt: inputText,
+                max_tokens: 150,
+                model: "text-davinci-003"
+            };
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            });
 
-            function jump() {
-                if (isJumping) return;
-                let count = 0;
-                isJumping = true;
+                const result = await response.json();
+                const humanizedText = result.choices[0].text.trim();
 
-                let upTimerId = setInterval(() => {
-                    // move up
-                    if (count === 15) {
-                        clearInterval(upTimerId);
-                        // fall down
-                        let downTimerId = setInterval(() => {
-                            if (count === 0) {
-                                clearInterval(downTimerId);
-                                isJumping = false;
-                            }
-                            position -= 5;
-                            count--;
-                            position = position * gravity;
-                            dino.style.bottom = position + 'px';
-                        }, 20);
-                    }
-
-                    position += 30;
-                    count++;
-                    position = position * gravity;
-                    dino.style.bottom = position + 'px';
-                }, 20);
+                outputTextElement.textContent = humanizedText;
+            } catch (error) {
+                outputTextElement.textContent = `Fehler: ${error.message}`;
             }
-
-            function checkCollision() {
-                const dinoRect = dino.getBoundingClientRect();
-                const cactusRect = cactus.getBoundingClientRect();
-
-                if (
-                    dinoRect.x < cactusRect.x + cactusRect.width &&
-                    dinoRect.x + dinoRect.width > cactusRect.x &&
-                    dinoRect.y < cactusRect.y + cactusRect.height &&
-                    dinoRect.y + dinoRect.height > cactusRect.y
-                ) {
-                    alert('Game Over! Your score: ' + score);
-                    window.location.reload();
-                }
-            }
-
-            function updateScore() {
-                score++;
-                scoreDisplay.textContent = 'Score: ' + score;
-            }
-
-            setInterval(checkCollision, 10);
-            setInterval(updateScore, 100);
         });
     </script>
 </body>
